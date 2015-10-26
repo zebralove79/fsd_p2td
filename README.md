@@ -18,6 +18,7 @@ The skeleton code was provided by Udacity, the rest of the code written by [Mori
 
 ### Without vagrant
 * Clone the repo: `git clone https://github.com/zebralove79/fsp2_td/`
+* Open the tournament folder
 * Run PostgreSQL and execute: `\i tournament.sql` (Warning: This will drop the tournament database if it already exists, which could lead to data loss.)
 * Your tournament database should now be set up
 
@@ -25,14 +26,14 @@ The skeleton code was provided by Udacity, the rest of the code written by [Mori
 * Clone the repo: `git clone https://github.com/zebralove79/fsp2_td/`
 * Set up and run the vagrant machine: `vagrant up`
 * Connect to the vagrant machine: `vagrant ssh`
-* In the vagrant machine: cd /vagrant/tournament
+* In the vagrant machine go to folder: `cd /vagrant/tournament`
 * Run PostgreSQL and execute: `\i tournament.sql` (Warning: This will drop the tournament database if it already exists, which could lead to data loss.)
 * Your tournament database should now be set up
 
 ## Unit tests
 You can run unit tests to check if everything is working. Be warned, however, because the tests will wipe your current tournament database, which could lead to data loss. It will also leave some test data in the database which you may want to remove.
 
-You can run the tests with: `python tournament_test.sql'
+You can run the tests with: `python tournament_test.sql`
 
 ## Requirements
 
