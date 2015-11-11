@@ -4,6 +4,7 @@
 
 from tournament import *
 
+
 def testDeleteMatches():
     deleteMatches()
     print "1. Old matches can be deleted."
@@ -125,6 +126,45 @@ def testPairings():
     print "8. After one match, players with one win are paired."
 
 
+def testFreeWin():
+    """ An additional test to check free win assignment """
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Dragon Eye Morrison")
+    registerPlayer("Thunderbolt Buddha")
+
+    # Give one of the two players a free win ('bye')
+    standings = playerStandings()
+    reportMatch(standings[0][0])
+
+    # Check if one (and only one) player has received free win ('bye')
+    if len(selectByePlayers()) != 1:
+        raise ValueError(
+            "(Only) one player should have received a free win ('bye')")
+    print "9. After one free win, a player has been marked."
+
+
+def testUnevenPairings():
+    """ An additional test to check Swiss pairings with
+    an uneven number of players. This includes the assignment
+    of a free win ('bye') """
+    deleteMatches()
+    deletePlayers()
+    registerPlayer("Dragon Eye Morrison")
+    registerPlayer("Thunderbolt Buddha")
+    registerPlayer("The Narrator")
+    registerPlayer("Gregor Samsa")
+    registerPlayer("Leopold Kanitz")
+
+    pairings = swissPairings()
+    if len(pairings) != 2:
+        raise ValueError(
+            "For five players, swissPairings should return two pairs.")
+    if len(selectByePlayers()) != 1:
+        raise ValueError(
+            "(Only) one player should have received a free win ('bye')")
+    print "10. With five players, there are two Swiss pairs and one 'bye'."
+
 if __name__ == '__main__':
     testDeleteMatches()
     testDelete()
@@ -134,6 +174,6 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
+    testFreeWin()
+    testUnevenPairings()
     print "Success!  All tests pass!"
-
-

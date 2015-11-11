@@ -21,10 +21,12 @@ CREATE DATABASE tournament;
 -- Players
 -- Create table to store players
 --   id: id of player (primary key, type serial)
---	 name: name of player (type varchar(255))
+--	 name: name of player (type varchar
+-- 	 free_win: true if the player has received a free win (type boolean)
 CREATE TABLE players (
 	id serial primary key,
-	name varchar(255)
+	name varchar,
+	free_win boolean DEFAULT false
 );
 
 -- Matches
@@ -49,7 +51,7 @@ CREATE TABLE matches (
 
 
 -- ** View definitions **
--- View to get the number of matches played per player
+-- View to get player id and the number of matches played per player
 CREATE VIEW player_matches AS 
 SELECT players.id, count(matches.id) AS matches 
 FROM players 
@@ -58,7 +60,7 @@ ON players.id = matches.player_one
    or players.id = matches.player_two 
 GROUP BY players.id;
 
--- View to get the number of matches won per player
+-- View to get player id and the number of matches won per player
 CREATE VIEW player_wins AS 
 SELECT players.id, count(matches.player_one) AS wins 
 FROM players 
@@ -66,3 +68,16 @@ LEFT JOIN matches
 ON players.id = matches.player_one 
    and matches.match_outcome = 'win' 
 GROUP BY players.id;
+
+-- View to get
+--   player id
+--   player name
+--   number of matches
+--   number of wins
+-- for all players, ordered by number of wins
+CREATE VIEW player_standings AS
+SELECT players.id, players.name, wins, matches
+FROM players, player_matches, player_wins
+WHERE player_matches.id = player_wins.id
+      and players.id = player_matches.id
+ORDER BY wins DESC;

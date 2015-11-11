@@ -85,11 +85,7 @@ def playerStandings():
     """
     db = connect()
     c = db.cursor()
-    query = """ SELECT players.id, players.name, wins, matches
-                FROM players, player_matches, player_wins
-                WHERE player_matches.id = player_wins.id
-                      and players.id = player_matches.id
-                ORDER BY wins DESC; """
+    query = """ SELECT * FROM player_standings """
     c.execute(query)
     players = c.fetchall()
     db.close()
@@ -109,7 +105,10 @@ def reportMatch(player_one, player_two=None, outcome='win'):
     have won. In case of a win, make sure that
         player_one = the winner's player id
         player_two = the loser's player id
-    """
+
+    For a free win ('bye') supply only player_one,
+    but not player_two nor outcome"""
+
     if player_one == player_two:
         raise Exception("""Both players have the same id.
             Please provide two different players""")
@@ -119,8 +118,14 @@ def reportMatch(player_one, player_two=None, outcome='win'):
     if player_two is None:
         # Free win situation, no loser
         query = """ INSERT INTO matches (player_one, match_outcome)
-                VALUES (%s, %s); """
-        c.execute(query, (player_one, outcome))
+                    VALUES (%s, 'win'); """
+        c.execute(query, (player_one, ))
+
+        # Mark player as free win receiver
+        query_assign_bye = """ UPDATE players
+                               SET free_win = true
+                               WHERE players.id = %s """
+        c.execute(query_assign_bye, (player_one, ))
     else:
         # Regular match outcome, two players, either win or loss.
         query = """ INSERT INTO matches (player_one, player_two, match_outcome)
@@ -131,24 +136,14 @@ def reportMatch(player_one, player_two=None, outcome='win'):
     db.close()
 
 
-def countMatches():
-    """Returns the total number of matches played"""
-    db = connect()
-    c = db.cursor()
-    query = "SELECT count(id) FROM matches"
-    c.execute(query)
-    count = c.fetchone()[0]
-    db.close
-
-    return count
-
-
 def getRandomPlayer():
-    """Returns a randomly chosen player's id"""
+    """Returns a randomly chosen player's id
+    of a player who hasn't received a free win ('bye') yet"""
     db = connect()
     c = db.cursor()
     query = """ SELECT id
                 FROM players
+                WHERE free_win = false
                 ORDER BY random()
                 LIMIT 1; """
     c.execute(query)
@@ -176,7 +171,6 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
-    result = list()
     db = connect()
     c = db.cursor()
 
@@ -195,11 +189,8 @@ def swissPairings():
 
         # Get players excl. free win ('bye') player ordered by player wins
         logging.debug("Get players excl. free win ('bye') player")
-        query = """ SELECT player_wins.id, players.name
-                    FROM player_wins, players
-                    WHERE player_wins.id = players.id
-                          and players.id != %s
-                    ORDER BY player_wins.wins """
+        query = """ SELECT id, name FROM player_standings
+                    WHERE player_standings.id != %s """
         c.execute(query, (random_player, ))
         players = c.fetchall()
 
@@ -208,10 +199,7 @@ def swissPairings():
         logging.debug("Even number of players, getting players")
         db = connect()
         c = db.cursor()
-        query = """ SELECT player_wins.id, players.name
-                    FROM player_wins, players
-                    WHERE player_wins.id = players.id
-                    ORDER BY player_wins.wins """
+        query = """SELECT id, name FROM player_standings;"""
         c.execute(query)
         players = c.fetchall()
 
@@ -225,3 +213,19 @@ def swissPairings():
                       players[i+1][0], players[i+1][1]))
 
     return pairs
+
+
+def selectByePlayers():
+    """Returns a list of players who have received a free win ('bye') """
+    db = connect()
+    c = db.cursor()
+
+    query = """ SELECT id, name, free_win
+                FROM players
+                WHERE free_win = true; """
+    c.execute(query)
+    result = c.fetchall()
+
+    db.close
+
+    return result
